@@ -1,4 +1,5 @@
-import numpy
+import numpy as np
+import math
 
 ###################################### Inputs ######################################
 
@@ -28,14 +29,27 @@ import numpy
 
 def nu(M, gamma):
 
-    return
+    theta = math.sqrt((gamma+1)/(gamma-1)) \
+        * math.degrees(math.atan(math.sqrt((gamma-1)*(M ** 2-1)/(gamma+1))))\
+        - math.degrees(math.atan(math.sqrt(M ** 2 - 1)))
+    return theta
 
 
 
 def nozzle(gamma, Me, n, R):
 
-# Initialize: d,
+    d_max = nu(Me, gamma)/2
+    d_inc = d_max/n
 
+    d = np.linspace(d_inc,d_max, n)
+
+    v = d.copy()
+    L = d - v
+    R = d + v
+    
+
+
+    l = 0
 
     return x
 
