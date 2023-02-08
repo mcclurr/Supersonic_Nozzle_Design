@@ -2,6 +2,7 @@ import numpy as np
 import math
 from scipy.optimize import fsolve
 import matplotlib.pyplot as plt
+import scipy
 
 ###################################### Inputs ######################################
 
@@ -49,7 +50,85 @@ def sline(L,xL,yL,R,xR,yR):
     y = yR+R*(x-xR)
     return x,y
 
-def nozzle(gamma, Me, n, R):
+def plot_figs(x,y,M,n,figNum,r,Me):
+
+    diag_msk = np.eye(x.shape[0], x.shape[1], k=-2, dtype=bool)
+
+    # Initializes Figure
+    plt.figure(figNum+1)
+    # Initializes top Subplot (plots data points)
+    plt.subplot(211)
+
+    # line width
+    lw = .85
+    # Plots lines as Grey
+    rgb = [.85, .85, .85]
+
+    # Plots lines between points
+    for i in range(n):
+        plt.plot(x[0:(i+2),i], y[0:(i+2),i], color = rgb, linewidth = lw)
+        plt.plot(x[2:,i], y[2:,i], color = rgb, linewidth = lw)
+        plt.plot(np.concatenate((x[i+1, i:], x[i+2,:i+1])), np.concatenate((y[i+1, i:], y[i+2,:i+1])), color = rgb, linewidth = lw)
+
+    # Plots black line to outline edge of nozzle
+    plt.plot(np.concatenate((x[0, :], x[diag_msk])), np.concatenate((y[0, :], y[diag_msk])), color = [0,0,0], linewidth = (lw))
+    # Plots scatter plot of x and y points colored by Mach Value
+    plt.scatter(x, y, c=M, cmap='viridis', s = 15, zorder = 15)
+    # Plots colorbar of Mach
+    cbar = plt.colorbar(orientation="vertical")
+    # Sets title of 'Mach'
+    cbar.ax.set_title('Mach')
+
+    # Set to makes axis equal
+    ax = plt.gca()
+    ax.set_aspect('equal', adjustable='box')
+
+    # Plots grid
+    plt.grid()
+    # Plots x label
+    plt.xlabel('x/L')
+    # Plots y label
+    plt.ylabel('y/L',rotation=0)
+    # Plots title
+    plt.title('Mach = ' + str(Me) + ", N = " + str(n) + ", Area Ratio = " + "{:.3f}".format(2*y[-1,-1]))
+
+
+    # Starts computation to plot second subplot
+
+    # Creates X,Y meshgrid
+    X,Y = np.meshgrid(np.linspace(0,x.max(),1000), np.linspace(0,y.max(),1000))
+
+    # pulls x,y,z values to be interpolated
+    x_intrp = np.concatenate((np.append([0,0],x[0,:]), np.append(np.asarray(x).ravel(), x.max())))
+    y_intrp = np.concatenate((np.append([0,r],y[0,:]), np.append(np.asarray(y).ravel(), 0)))
+    z_intrp = np.concatenate((np.append([1,1],M[0,:]), np.append(np.asarray(M).ravel(), Me)))
+
+    # Creates Z meshgrid values
+    xi = (x_intrp, y_intrp)
+    xx = (np.asarray(X), np.asarray(Y))
+    Z = scipy.interpolate.griddata(xi, z_intrp, xx)
+
+    # Starts plotting second subplot
+    plt.subplot(212)
+    plt.pcolormesh(X,Y,Z, cmap='viridis')
+
+    # Plots colorbar
+    cbar = plt.colorbar(orientation="vertical")
+    cbar.ax.set_title('Mach')
+
+    # Sets Axis Equal
+    ax = plt.gca()
+    ax.set_aspect('equal', adjustable='box')
+
+    # Plots Grid
+    plt.grid()
+    plt.xlabel('x/L')
+    plt.ylabel('y/L', rotation=0)
+    plt.title('Mach = ' + str(Me) + ", N = " + str(n) + ", Area Ratio = " + "{:.3f}".format(2*y[-1,-1]))
+
+    plt.figure(figNum+1).tight_layout()
+
+def nozzle(gamma, Me, n, r, figNum):
 
     R = np.zeros([(n+2), n])
     L = np.zeros([(n+2), n])
@@ -90,8 +169,6 @@ def nozzle(gamma, Me, n, R):
     M = vector_solve(v, gamma, Me)
 
     u = np.degrees(np.arcsin(1/M))
-
-    r = 0.5
 
     R_slope = np.zeros([d.shape[0]-1, d.shape[1]])
 
@@ -138,29 +215,7 @@ def nozzle(gamma, Me, n, R):
             else:
                 x[i,j], y[i,j] = sline(0,0,0, R_slope[i-1,j], x[i-1,j], y[i-1,j])
 
-    fig, axs = plt.subplots(2)
-
-    lw = .85
-    rgb = [.85, .85, .85]
-
-    for i in range(n):
-        axs[1] = plt.plot(x[0:(i+2),i], y[0:(i+2),i], color = rgb, linewidth = lw)
-        axs[1] = plt.plot(x[2:,i], y[2:,i], color = rgb, linewidth = lw)
-        axs[1] = plt.plot(np.concatenate((x[i+1, i:], x[i+2,:i+1])), np.concatenate((y[i+1, i:], y[i+2,:i+1])), color = rgb, linewidth = lw)
-
-    axs[1] = plt.plot(np.concatenate((x[0, :], x[L_slope_diag_msk])), np.concatenate((y[0, :], y[L_slope_diag_msk])), color = [0,0,0], linewidth = (lw))
-    axs[1] = plt.scatter(x, y, c=M, cmap='viridis', s = 15, zorder = 15)
-    axs[1] = plt.colorbar(orientation="vertical")
-    axs[1].ax.set_title('M')
-
-
-    axs[1] = plt.grid()
-    axs[1] = plt.xlabel('x/L')
-    axs[1] = plt.ylabel('y/L')
-    axs[1] = plt.title('M = ' + str(Me) + ", N = " + str(n) + ", Area Ratio = " + "{:.3f}".format(2*y[-1,-1]))
-    plt.show()
-
-    l = 0
+    plot_figs(x,y,M,n,figNum,r,Me)
 
     return
 

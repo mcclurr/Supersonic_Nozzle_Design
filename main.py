@@ -14,9 +14,10 @@ if __name__ == '__main__':
 
     area_ratio = []
 
-    for n in n_list:
-        area_ratio.append(nozzle(GAMMA, Me, n, R))
+    for i, n in enumerate(n_list):
+        area_ratio.append(nozzle(GAMMA, Me, n, R, i))
 
+    # plt.show()
 
 
 
