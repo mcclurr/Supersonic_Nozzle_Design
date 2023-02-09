@@ -38,10 +38,12 @@ def nu(M, gamma):
     return theta
 
 def solve_M(z, gamma, Me):
+
     func = lambda M: np.sqrt((gamma+1)/(gamma-1)) *\
                      np.degrees(np.arctan(np.sqrt((gamma-1)*(M ** 2 -1)/(gamma+1))))\
                      - np.degrees(np.arctan(np.sqrt((M ** 2 -1)))) - z
-    tau_initial_guess = Me
+
+    tau_initial_guess = 1
     return fsolve(func, tau_initial_guess)
 
 def sline(L,xL,yL,R,xR,yR):
@@ -71,9 +73,9 @@ def plot_figs(x,y,M,n,figNum,r,Me):
         plt.plot(np.concatenate((x[i+1, i:], x[i+2,:i+1])), np.concatenate((y[i+1, i:], y[i+2,:i+1])), color = rgb, linewidth = lw)
 
     # Plots black line to outline edge of nozzle
-    plt.plot(np.concatenate((x[0, :], x[diag_msk])), np.concatenate((y[0, :], y[diag_msk])), color = [0,0,0], linewidth = (lw))
+    plt.plot(np.concatenate((x[0, :], x[diag_msk])), np.concatenate((y[0, :], y[diag_msk])), color = [0,0,0], linewidth = (lw), zorder = 25)
     # Plots scatter plot of x and y points colored by Mach Value
-    plt.scatter(x, y, c=M, cmap='viridis', s = 15, zorder = 15)
+    plt.scatter(x, y, c=M, cmap='viridis', s = 10, zorder = 15)
     # Plots colorbar of Mach
     cbar = plt.colorbar(orientation="vertical")
     # Sets title of 'Mach'
@@ -82,6 +84,8 @@ def plot_figs(x,y,M,n,figNum,r,Me):
     # Set to makes axis equal
     ax = plt.gca()
     ax.set_aspect('equal', adjustable='box')
+    ax.set_ylim(top=1.5)
+    ax.set_xlim(0,x.max())
 
     # Plots grid
     plt.grid()
@@ -112,6 +116,8 @@ def plot_figs(x,y,M,n,figNum,r,Me):
     plt.subplot(212)
     plt.pcolormesh(X,Y,Z, cmap='viridis')
 
+    plt.plot(np.concatenate((x[0, :], x[diag_msk])), np.concatenate((y[0, :], y[diag_msk])), color=[0, 0, 0], linewidth=(lw), zorder = 25)
+
     # Plots colorbar
     cbar = plt.colorbar(orientation="vertical")
     cbar.ax.set_title('Mach')
@@ -119,6 +125,8 @@ def plot_figs(x,y,M,n,figNum,r,Me):
     # Sets Axis Equal
     ax = plt.gca()
     ax.set_aspect('equal', adjustable='box')
+    ax.set_ylim(top=1.5)
+    ax.set_xlim(0,x.max())
 
     # Plots Grid
     plt.grid()
@@ -127,6 +135,8 @@ def plot_figs(x,y,M,n,figNum,r,Me):
     plt.title('Mach = ' + str(Me) + ", N = " + str(n) + ", Area Ratio = " + "{:.3f}".format(2*y[-1,-1]))
 
     plt.figure(figNum+1).tight_layout()
+
+    return
 
 def nozzle(gamma, Me, n, r, figNum):
 
@@ -164,16 +174,14 @@ def nozzle(gamma, Me, n, r, figNum):
     d = (R-L)/2
     v = (R+L)/2
 
+    # Calls on fsolve to numerically solve for the Mach
     vector_solve = np.vectorize(solve_M)
-
     M = vector_solve(v, gamma, Me)
 
     u = np.degrees(np.arcsin(1/M))
 
     R_slope = np.zeros([d.shape[0]-1, d.shape[1]])
-
     R_slope[0,:] = np.tan(np.radians((d[0,:]-u[0,:])))
-
     R_slope[1:,:] = np.tan(np.radians(d[1:-1,:] - u[1:-1,:] + d[:-2,:] - u[:-2,:])/2)
 
     R_slope_diag_msk = np.eye(R_slope.shape[0], R_slope.shape[1], k=-2, dtype=bool)
@@ -218,20 +226,3 @@ def nozzle(gamma, Me, n, r, figNum):
     plot_figs(x,y,M,n,figNum,r,Me)
 
     return
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
