@@ -1,9 +1,6 @@
-
-
 from computation import nozzle
 import matplotlib.pyplot as plt
 import numpy as np
-from scipy.special import expit
 from scipy.optimize import curve_fit
 
 # Inputs
@@ -13,9 +10,10 @@ Me = 2.286
 GAMMA = 1.4
 n_list = [8,16,32,64,128]
 R = .5
+TOL = 1e-12
 
 def polyfitfunction(x,a,b,c,d):
-    return a*expit(-b*x+c)+d
+    return a*np.exp(-b*x+c)+d
 
 if __name__ == '__main__':
 
@@ -32,7 +30,7 @@ if __name__ == '__main__':
 
     plt.scatter(n_list, error, s=30, color='r', zorder=15, label="Data")
 
-    popt, _ = curve_fit(polyfitfunction, np.array(n_list),error)
+    popt, _ = curve_fit(polyfitfunction, np.array(n_list),error, bounds=(0,2))
     a,b,c,d = popt
 
     x_error = np.linspace(min(n_list), max(n_list), 1000)
@@ -45,9 +43,5 @@ if __name__ == '__main__':
     # Plots title
     plt.title('True Percentage Relative Error vs. Number of Initial Points')
     plt.legend(loc="upper right")
-
-
-    l = 0
-
 
     plt.show()
