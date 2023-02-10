@@ -225,4 +225,6 @@ def nozzle(gamma, Me, n, r, figNum):
 
     plot_figs(x,y,M,n,figNum,r,Me)
 
-    return
+    area_ratio = 2*y[-1,-1]
+
+    return area_ratio
