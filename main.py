@@ -3,7 +3,8 @@
 from computation import nozzle
 import matplotlib.pyplot as plt
 import numpy as np
-
+from scipy.special import expit
+from scipy.optimize import curve_fit
 
 # Inputs
 Me = 2.286
@@ -12,6 +13,9 @@ Me = 2.286
 GAMMA = 1.4
 n_list = [8,16,32,64,128]
 R = .5
+
+def polyfitfunction(x,a,b,c,d):
+    return a*expit(-b*x+c)+d
 
 if __name__ == '__main__':
 
@@ -26,7 +30,22 @@ if __name__ == '__main__':
     exact_AR = (2.4/2) ** (-3) * ((1+.2*Me**2) ** (3))/Me
     error = np.abs(exact_AR - area_ratio_list)/exact_AR * 100
 
-    plt.scatter(n_list, error, s=20, facecolors='none', edgecolors='g')
+    plt.scatter(n_list, error, s=30, color='r', zorder=15, label="Data")
+
+    popt, _ = curve_fit(polyfitfunction, np.array(n_list),error)
+    a,b,c,d = popt
+
+    x_error = np.linspace(min(n_list), max(n_list), 1000)
+    y_error = polyfitfunction(x_error,a,b,c,d)
+
+    plt.plot(x_error,y_error, label="Exponential Interpolation Fit")
+    plt.xlabel('Number of Initial Points')
+    # Plots y label
+    plt.ylabel('True Percentage Relative Error [%]')
+    # Plots title
+    plt.title('True Percentage Relative Error vs. Number of Initial Points')
+    plt.legend(loc="upper right")
+
 
     l = 0
 
